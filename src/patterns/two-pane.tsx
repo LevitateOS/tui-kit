@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
 	SurfaceFrame,
 	resolveSurfaceFrameGeometry,
+	type SurfaceFrameLayoutGuards,
 	type ResolveSurfaceFrameGeometryOptions,
 	type SurfaceFrameProps,
 } from "../surfaces/index";
@@ -19,6 +20,7 @@ export type TwoPaneProps = {
 	contentBorderStyle?: "single" | "double" | "round" | "bold";
 	minColumns?: number;
 	minRows?: number;
+	layoutGuards?: SurfaceFrameLayoutGuards;
 };
 
 export type TwoPaneGeometry = {
@@ -45,6 +47,7 @@ export type ResolveTwoPaneGeometryOptions = {
 	hasHeader?: boolean;
 	sidebarTitleRows?: number;
 	contentTitleRows?: number;
+	layoutGuards?: SurfaceFrameLayoutGuards;
 };
 
 function toSurfaceGeometryOptions(
@@ -60,6 +63,7 @@ function toSurfaceGeometryOptions(
 		hasHeader: options.hasHeader,
 		leftTitleRows: options.sidebarTitleRows,
 		rightTitleRows: options.contentTitleRows,
+		layoutGuards: options.layoutGuards,
 	};
 }
 
@@ -94,11 +98,13 @@ export function TwoPane({
 	contentBorderStyle,
 	minColumns,
 	minRows,
+	layoutGuards,
 }: TwoPaneProps) {
 	const frame: SurfaceFrameProps = {
 		title,
 		showHeader,
 		leftWidth: sidebarWidth,
+		layoutGuards,
 		minColumns,
 		minRows,
 		footer,

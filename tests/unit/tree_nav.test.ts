@@ -44,4 +44,40 @@ describe("tree nav", () => {
 		expect(rows.some((row) => row.kind === "item" && row.text.includes("Install"))).toBe(false);
 		expect(rows.some((row) => row.kind === "item" && row.text.includes("recstrap"))).toBe(true);
 	});
+
+	it("keeps padding and removes bullet when inactive marker is explicitly empty", () => {
+		const rows = buildTreeNavRows(
+			[
+				{ key: "a", section: "Getting Started", label: "Install" },
+				{ key: "b", section: "Getting Started", label: "Bootloader" },
+			],
+			{
+				selectedIndex: 0,
+				mode: "all-sections",
+				maxWidth: 40,
+				activeItemMarker: "▸",
+				inactiveItemMarker: "",
+			},
+		);
+
+		const activeRow = rows.find((row) => row.kind === "item" && row.active);
+		const inactiveRow = rows.find((row) => row.kind === "item" && !row.active);
+
+		expect(activeRow?.text.includes(" ▸ ")).toBe(true);
+		expect(inactiveRow?.text.includes("•")).toBe(false);
+		expect(inactiveRow?.text.startsWith("  Bootloader")).toBe(true);
+	});
+
+	it("respects caller maxWidth below legacy floor", () => {
+		const rows = buildTreeNavRows([{ key: "a", section: "Getting Started", label: "LongLabel" }], {
+			selectedIndex: 0,
+			mode: "all-sections",
+			maxWidth: 6,
+		});
+
+		const sectionRow = rows.find((row) => row.kind === "section");
+		const itemRow = rows.find((row) => row.kind === "item");
+		expect(sectionRow?.text.length).toBeLessThanOrEqual(6);
+		expect(itemRow?.text.length).toBe(6);
+	});
 });

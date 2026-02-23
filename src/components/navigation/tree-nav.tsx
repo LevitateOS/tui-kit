@@ -41,7 +41,10 @@ type GroupedSection = {
 };
 
 function marker(token: string | undefined, fallback: string): string {
-	return typeof token === "string" && token.length > 0 ? token.slice(0, 1) : fallback;
+	if (typeof token === "string") {
+		return token.length > 0 ? token.slice(0, 1) : "";
+	}
+	return fallback;
 }
 
 function normalizeSection(value: string): string {
@@ -72,7 +75,7 @@ export function buildTreeNavRows(
 	items: ReadonlyArray<TreeNavItem>,
 	options: BuildTreeNavRowsOptions,
 ): TreeNavRow[] {
-	const safeWidth = Math.max(20, Math.floor(options.maxWidth ?? 30));
+	const safeWidth = Math.max(1, Math.floor(options.maxWidth ?? 30));
 	const mode = options.mode ?? "focus-section";
 	const activeSection = normalizeSection(options.currentSection ?? "");
 	const safeSelected =
@@ -107,7 +110,7 @@ export function buildTreeNavRows(
 		const isActiveSection = section.title === activeSection;
 		const collapsed = mode === "focus-section" && !isActiveSection;
 		const sectionMarker = collapsed ? collapsedSectionMarker : expandedSectionMarker;
-		const sectionLabel = truncateBoundedLine(`${sectionMarker} ${section.title}`, safeWidth, 20);
+		const sectionLabel = truncateBoundedLine(`${sectionMarker} ${section.title}`, safeWidth, 1);
 
 		if (!isActiveSection || !options.hideActiveSectionHeader) {
 			rows.push({
@@ -125,7 +128,7 @@ export function buildTreeNavRows(
 		for (const { item, index } of section.items) {
 			const active = index === safeSelected;
 			const itemMarker = active ? activeItemMarker : inactiveItemMarker;
-			const rowText = truncateBoundedLine(` ${itemMarker} ${item.label}`, safeWidth, 20);
+			const rowText = truncateBoundedLine(` ${itemMarker} ${item.label}`, safeWidth, 1);
 			rows.push({
 				key: item.key,
 				text: active ? padRight(rowText, safeWidth) : rowText,

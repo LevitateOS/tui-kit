@@ -20,7 +20,7 @@ describe("two pane geometry", () => {
 		expect(geometry.contentTextRows).toBe(18);
 	});
 
-	it("caps oversized sidebar requests to preserve content width", () => {
+	it("allows oversized sidebar requests when no layout guards are supplied", () => {
 		const geometry = resolveTwoPaneGeometry({
 			columns: 90,
 			rows: 28,
@@ -28,6 +28,25 @@ describe("two pane geometry", () => {
 			headerHeight: 2,
 			footerHeight: 2,
 			hasFooter: true,
+		});
+
+		expect(geometry.sidebarOuterWidth).toBe(60);
+		expect(geometry.contentOuterWidth).toBe(30);
+	});
+
+	it("caps oversized sidebar requests when layout guards are provided", () => {
+		const geometry = resolveTwoPaneGeometry({
+			columns: 90,
+			rows: 28,
+			requestedSidebarWidth: 60,
+			headerHeight: 2,
+			footerHeight: 2,
+			hasFooter: true,
+			layoutGuards: {
+				minLeftOuterWidth: 20,
+				minRightOuterWidth: 42,
+				maxLeftWidthRatio: 0.4,
+			},
 		});
 
 		expect(geometry.sidebarOuterWidth).toBeLessThanOrEqual(Math.floor(90 * 0.4));

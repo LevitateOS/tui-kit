@@ -23,4 +23,23 @@ describe("section list", () => {
 		expect(renderSectionList([], 0)).toBe("(no items)");
 		expect(renderSectionList([], 0, { emptyLabel: "none" })).toBe("none");
 	});
+
+	it("honors explicit empty inactive marker for marker-free rows", () => {
+		const rendered = renderSectionList(
+			[
+				{ section: "Getting Started", label: "Installation" },
+				{ section: "Getting Started", label: "Bootloader" },
+			],
+			0,
+			{
+				marker: "▸",
+				inactiveMarker: "",
+				maxWidth: 40,
+			},
+		);
+
+		expect(rendered).toContain("  ▸ Installation");
+		expect(rendered).not.toContain("•");
+		expect(rendered).toContain("   Bootloader");
+	});
 });

@@ -4,26 +4,9 @@ import type { ColorIntent } from "../../theme";
 export type SurfacePaneTitleStyle = "slot" | "notched" | "plain";
 export type SurfacePaneTitleMode = "none" | "inline" | "slot";
 
-export type SurfacePaneBandProps = {
-	content: ReactNode;
-	textIntent?: ColorIntent;
-	backgroundIntent?: ColorIntent;
-	separatorBelow?: boolean;
-	separatorIntent?: ColorIntent;
-	bold?: boolean;
-	paddingX?: number;
-};
-
-export type SurfacePaneBandsProps = {
-	top?: SurfacePaneBandProps;
-	subtop?: SurfacePaneBandProps;
-	bottom?: SurfacePaneBandProps;
-};
-
 export type SurfacePaneProps = {
 	title?: ReactNode;
 	body: ReactNode;
-	bands?: SurfacePaneBandsProps;
 	outerWidth?: number;
 	outerHeight?: number;
 	minOuterWidth?: number;
@@ -39,10 +22,17 @@ export type SurfacePaneProps = {
 	paddingY?: number;
 };
 
+export type SurfaceFrameLayoutGuards = {
+	minLeftOuterWidth?: number;
+	minRightOuterWidth?: number;
+	maxLeftWidthRatio?: number;
+};
+
 export type SurfaceFrameProps = {
 	title?: ReactNode;
 	showHeader?: boolean;
 	leftWidth?: number;
+	layoutGuards?: SurfaceFrameLayoutGuards;
 	leftPane: Omit<SurfacePaneProps, "outerWidth" | "outerHeight" | "minOuterWidth" | "flexGrow">;
 	rightPane: Omit<SurfacePaneProps, "outerWidth" | "outerHeight" | "minOuterWidth" | "flexGrow">;
 	footer?: ReactNode;
@@ -76,6 +66,7 @@ export type ResolveSurfaceFrameGeometryOptions = {
 	gutterColumns?: number;
 	leftTitleRows?: number;
 	rightTitleRows?: number;
+	layoutGuards?: SurfaceFrameLayoutGuards;
 };
 
 export type FrameCanvasProps = {

@@ -15,6 +15,13 @@ export type RenderSectionListOptions = {
 	sectionPrefix?: string;
 };
 
+function marker(token: string | undefined, fallback: string): string {
+	if (typeof token === "string") {
+		return token.length > 0 ? token.slice(0, 1) : "";
+	}
+	return fallback;
+}
+
 export function renderSectionList(
 	items: ReadonlyArray<SectionListItem>,
 	selectedIndex: number,
@@ -24,10 +31,10 @@ export function renderSectionList(
 		return options.emptyLabel ?? "(no items)";
 	}
 
-	const safeWidth = normalizeTextWidth(options.maxWidth ?? 30, 20);
+	const safeWidth = normalizeTextWidth(options.maxWidth ?? 30, 1);
 	const safeSelected = clampNumber(toNonNegativeInt(selectedIndex, 0), 0, items.length - 1);
-	const marker = (options.marker ?? ">").slice(0, 1) || ">";
-	const inactiveMarker = (options.inactiveMarker ?? " ").slice(0, 1) || " ";
+	const activeMarker = marker(options.marker, ">");
+	const inactiveMarker = marker(options.inactiveMarker, " ");
 	const sectionPrefix = typeof options.sectionPrefix === "string" ? options.sectionPrefix : "";
 	const lines: string[] = [];
 	let currentSection = "";
@@ -43,13 +50,13 @@ export function renderSectionList(
 				truncateBoundedLine(
 					sectionPrefix.length > 0 ? `${sectionPrefix} ${currentSection}` : currentSection,
 					safeWidth,
-					20,
+					1,
 				),
 			);
 		}
 
-		const selectedMarker = index === safeSelected ? marker : inactiveMarker;
-		lines.push(truncateBoundedLine(`  ${selectedMarker} ${item.label}`, safeWidth, 20));
+		const selectedMarker = index === safeSelected ? activeMarker : inactiveMarker;
+		lines.push(truncateBoundedLine(`  ${selectedMarker} ${item.label}`, safeWidth, 1));
 	}
 
 	return lines.join("\n");

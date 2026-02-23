@@ -31,3 +31,17 @@
 - React hooks are the lifecycle mechanism; do not add a parallel lifecycle subsystem.
 - Prefer composable TSX primitives over imperative controller abstractions.
 - Fail fast with explicit errors; no silent fallback behavior.
+
+## Abstraction-Loop Guard (Mandatory)
+
+- Complexity must track bug size. If a fix starts exceeding the defect scope, stop and reclassify before further edits.
+- Do not fix local visual/layout defects by defaulting to cross-layer plumbing, measurement guessing, or global contracts.
+- Enforce invariants only at the layer that owns required state (ownership rule).
+- If tests and user-observed output disagree, user-observed output is authoritative.
+- For strict TUI chrome invariants (borders/seams/splits), prefer structural construction over timing-dependent behavior.
+- If trigger conditions appear (multi-round patch churn, proof mismatch, disproportionate LOC), run a mandatory `MODEL RECLASSIFICATION GATE` before continuing:
+  - invariant sentence
+  - current enforcement layer
+  - at least two alternate models
+  - short decision matrix (determinism, complexity, ownership, testability, compatibility)
+  - selected model and explicit tradeoff callout

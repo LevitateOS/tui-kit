@@ -5,5 +5,6 @@ export * from "./primitives/index";
 export * from "./components/index";
 export * from "./patterns/index";
 export * from "./surfaces/index";
+export * from "./chrome/index";
 export * from "./theme";
 export * from "./utils/index";

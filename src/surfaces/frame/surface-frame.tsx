@@ -6,15 +6,13 @@ import { resolveIntentColor } from "../../theme";
 import { FrameCanvas } from "./frame-canvas";
 import { SurfacePane } from "./pane";
 import type {
+	SurfaceFrameLayoutGuards,
 	ResolveSurfaceFrameGeometryOptions,
-	SurfacePaneBandsProps,
 	SurfacePaneProps,
 	SurfaceFrameGeometry,
 	SurfaceFrameProps,
 } from "./types";
 
-const MIN_LEFT_OUTER_WIDTH = 20;
-const MIN_RIGHT_OUTER_WIDTH = 42;
 const BORDER_COLUMNS = 2;
 const HORIZONTAL_PADDING_COLUMNS = 2;
 const BORDER_ROWS = 2;
@@ -27,30 +25,55 @@ function textRowsFromOuterHeight(outerHeight: number, titleRows: number, padding
 	return Math.max(1, outerHeight - BORDER_ROWS - titleRows - Math.max(0, paddingY * 2));
 }
 
-function reservedBandRows(bands: SurfacePaneBandsProps | undefined): number {
-	if (!bands) {
-		return 0;
-	}
-	let rows = 0;
-	for (const band of [bands.top, bands.subtop, bands.bottom]) {
-		if (!band) {
-			continue;
-		}
-		rows += 1;
-		if (band.separatorBelow) {
-			rows += 1;
-		}
-	}
-	return rows;
-}
-
 function paneTitleRows(
 	pane: Omit<SurfacePaneProps, "outerWidth" | "outerHeight" | "minOuterWidth" | "flexGrow">,
+	defaultBorderStyle: "single" | "double" | "round" | "bold",
 ): number {
-	if (!pane.title) {
+	if (pane.title === undefined || pane.title === null) {
 		return 0;
 	}
-	return pane.titleMode === "none" ? 0 : 1;
+	if (pane.titleMode === "none") {
+		return 0;
+	}
+
+	const resolvedBorderStyle = pane.borderStyle ?? defaultBorderStyle;
+	const hasBorder = resolvedBorderStyle !== "none";
+	const title =
+		typeof pane.title === "string" ||
+		typeof pane.title === "number" ||
+		typeof pane.title === "bigint"
+			? String(pane.title)
+			: "";
+
+	return hasBorder && title.length > 0 ? 2 : 1;
+}
+
+function normalizeMinWidth(value: number | undefined): number {
+	if (typeof value !== "number" || !Number.isFinite(value)) {
+		return 1;
+	}
+	return Math.max(1, Math.floor(value));
+}
+
+function normalizeRatio(value: number | undefined): number | undefined {
+	if (typeof value !== "number" || !Number.isFinite(value)) {
+		return undefined;
+	}
+	return Math.max(0, Math.min(1, value));
+}
+
+function resolveLayoutGuards(
+	layoutGuards: SurfaceFrameLayoutGuards | undefined,
+): Required<SurfaceFrameLayoutGuards> {
+	const minLeftOuterWidth = normalizeMinWidth(layoutGuards?.minLeftOuterWidth);
+	const minRightOuterWidth = normalizeMinWidth(layoutGuards?.minRightOuterWidth);
+	const maxLeftWidthRatio = normalizeRatio(layoutGuards?.maxLeftWidthRatio) ?? 1;
+
+	return {
+		minLeftOuterWidth,
+		minRightOuterWidth,
+		maxLeftWidthRatio,
+	};
 }
 
 export function resolveSurfaceFrameGeometry(
@@ -65,16 +88,30 @@ export function resolveSurfaceFrameGeometry(
 	const gutterColumns = Math.max(0, Math.floor(options.gutterColumns ?? 0));
 	const leftTitleRows = Math.max(0, Math.floor(options.leftTitleRows ?? 0));
 	const rightTitleRows = Math.max(0, Math.floor(options.rightTitleRows ?? 0));
-
-	const preferredLeftWidth = Math.max(MIN_LEFT_OUTER_WIDTH, Math.floor(options.requestedLeftWidth));
-	const leftMaxByRightGuard = Math.max(
-		MIN_LEFT_OUTER_WIDTH,
-		frameColumns - gutterColumns - MIN_RIGHT_OUTER_WIDTH,
+	const guards = resolveLayoutGuards(options.layoutGuards);
+	const preferredLeftWidth = Math.max(
+		guards.minLeftOuterWidth,
+		Math.floor(options.requestedLeftWidth),
 	);
-	const leftMaxByRatio = Math.max(MIN_LEFT_OUTER_WIDTH, Math.floor(frameColumns * 0.4));
-	const leftUpperBound = Math.min(leftMaxByRightGuard, leftMaxByRatio);
+	const maxLeftByRightFloor = frameColumns - gutterColumns - guards.minRightOuterWidth;
+	const maxLeftByAnyRight = frameColumns - gutterColumns - 1;
+	let leftUpperBound = maxLeftByAnyRight;
+
+	if (maxLeftByRightFloor >= guards.minLeftOuterWidth) {
+		leftUpperBound = Math.min(leftUpperBound, maxLeftByRightFloor);
+	}
+
+	if (guards.maxLeftWidthRatio < 1) {
+		const maxLeftByRatio = Math.max(
+			guards.minLeftOuterWidth,
+			Math.floor(frameColumns * guards.maxLeftWidthRatio),
+		);
+		leftUpperBound = Math.min(leftUpperBound, maxLeftByRatio);
+	}
+
+	leftUpperBound = Math.max(guards.minLeftOuterWidth, leftUpperBound);
 	const leftOuterWidth = Math.max(
-		MIN_LEFT_OUTER_WIDTH,
+		guards.minLeftOuterWidth,
 		Math.min(leftUpperBound, preferredLeftWidth),
 	);
 	const rightOuterWidth = Math.max(1, frameColumns - leftOuterWidth - gutterColumns);
@@ -99,6 +136,7 @@ export function SurfaceFrame({
 	title,
 	showHeader = true,
 	leftWidth,
+	layoutGuards,
 	leftPane,
 	rightPane,
 	footer,
@@ -140,9 +178,11 @@ export function SurfaceFrame({
 		hasFooter: Boolean(footer),
 		hasHeader: showHeader,
 		gutterColumns: theme.chrome.framePaneGap,
-		leftTitleRows: paneTitleRows(leftPane) + reservedBandRows(leftPane.bands),
-		rightTitleRows: paneTitleRows(rightPane) + reservedBandRows(rightPane.bands),
+		leftTitleRows: paneTitleRows(leftPane, theme.chrome.borderGlyphSet),
+		rightTitleRows: paneTitleRows(rightPane, theme.chrome.borderGlyphSet),
+		layoutGuards,
 	});
+	const guards = resolveLayoutGuards(layoutGuards);
 
 	const headerNode =
 		typeof title === "string" ? (
@@ -172,7 +212,7 @@ export function SurfaceFrame({
 					{...leftPane}
 					outerWidth={geometry.leftOuterWidth}
 					outerHeight={geometry.bodyRows}
-					minOuterWidth={MIN_LEFT_OUTER_WIDTH}
+					minOuterWidth={guards.minLeftOuterWidth}
 					flexGrow={0}
 					textIntent={leftPane.textIntent ?? "sidebarItemText"}
 					backgroundIntent={leftPane.backgroundIntent ?? "sidebarBackground"}
@@ -184,7 +224,7 @@ export function SurfaceFrame({
 					{...rightPane}
 					outerWidth={geometry.rightOuterWidth}
 					outerHeight={geometry.bodyRows}
-					minOuterWidth={MIN_RIGHT_OUTER_WIDTH}
+					minOuterWidth={guards.minRightOuterWidth}
 					flexGrow={1}
 					textIntent={rightPane.textIntent ?? "text"}
 					backgroundIntent={rightPane.backgroundIntent ?? "contentBackground"}
