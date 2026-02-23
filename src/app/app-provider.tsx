@@ -37,17 +37,34 @@ export function useTuiColors(): ColorRuntime {
 
 export function useTuiViewport(): TerminalSize {
 	const { stdout } = useStdout();
-	const [size, setSize] = useState<TerminalSize>(() => readScreenSize(stdout));
+	const processViewport = readScreenSize({
+		columns: process.stdout.columns,
+		rows: process.stdout.rows,
+	});
+	const readViewport = (): TerminalSize => readScreenSize(stdout, processViewport);
+	const [size, setSize] = useState<TerminalSize>(() => readViewport());
 
 	useEffect(() => {
-		setSize(readScreenSize(stdout));
+		setSize((previous) => {
+			const next = readViewport();
+			if (previous.columns === next.columns && previous.rows === next.rows) {
+				return previous;
+			}
+			return next;
+		});
 
 		if (!stdout) {
 			return;
 		}
 
 		const onResize = () => {
-			setSize(readScreenSize(stdout));
+			setSize((previous) => {
+				const next = readViewport();
+				if (previous.columns === next.columns && previous.rows === next.rows) {
+					return previous;
+				}
+				return next;
+			});
 		};
 
 		stdout.on("resize", onResize);

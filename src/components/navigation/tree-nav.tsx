@@ -92,7 +92,10 @@ export function buildTreeNavRows(
 		return [
 			{
 				key: "empty",
-				text: options.emptyLabel ?? "(no docs pages)",
+				text: padRight(
+					truncateBoundedLine(options.emptyLabel ?? "(no docs pages)", safeWidth, 1),
+					safeWidth,
+				),
 				kind: "item",
 			},
 		];
@@ -102,7 +105,7 @@ export function buildTreeNavRows(
 		if (rows.length > 0) {
 			rows.push({
 				key: `gap-section-${sectionIndex}`,
-				text: "",
+				text: " ".repeat(safeWidth),
 				kind: "gap",
 			});
 		}
@@ -110,7 +113,10 @@ export function buildTreeNavRows(
 		const isActiveSection = section.title === activeSection;
 		const collapsed = mode === "focus-section" && !isActiveSection;
 		const sectionMarker = collapsed ? collapsedSectionMarker : expandedSectionMarker;
-		const sectionLabel = truncateBoundedLine(`${sectionMarker} ${section.title}`, safeWidth, 1);
+		const sectionLabel = padRight(
+			truncateBoundedLine(`${sectionMarker} ${section.title}`, safeWidth, 1),
+			safeWidth,
+		);
 
 		if (!isActiveSection || !options.hideActiveSectionHeader) {
 			rows.push({
@@ -128,10 +134,13 @@ export function buildTreeNavRows(
 		for (const { item, index } of section.items) {
 			const active = index === safeSelected;
 			const itemMarker = active ? activeItemMarker : inactiveItemMarker;
-			const rowText = truncateBoundedLine(` ${itemMarker} ${item.label}`, safeWidth, 1);
+			const rowText = padRight(
+				truncateBoundedLine(` ${itemMarker} ${item.label}`, safeWidth, 1),
+				safeWidth,
+			);
 			rows.push({
 				key: item.key,
-				text: active ? padRight(rowText, safeWidth) : rowText,
+				text: rowText,
 				kind: "item",
 				active,
 			});
@@ -205,7 +214,7 @@ export function TreeNav({
 				if (row.kind === "gap") {
 					return (
 						<Text key={row.key} color={itemColor}>
-							{" "}
+							{row.text.length > 0 ? row.text : " "}
 						</Text>
 					);
 				}

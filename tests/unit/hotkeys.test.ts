@@ -39,4 +39,15 @@ describe("hotkey helpers", () => {
 		expect(names.includes("c")).toBe(true);
 		expect(names.includes("C-c")).toBe(true);
 	});
+
+	it("maps raw VT escape sequences for arrows and paging", () => {
+		expect(keyNamesFromInput("\u001b[A", {}).includes("up")).toBe(true);
+		expect(keyNamesFromInput("\u001bOB", {}).includes("down")).toBe(true);
+		expect(keyNamesFromInput("\u001bOC", {}).includes("right")).toBe(true);
+		expect(keyNamesFromInput("\u001b[D", {}).includes("left")).toBe(true);
+		expect(keyNamesFromInput("\u001b[5~", {}).includes("pageup")).toBe(true);
+		expect(keyNamesFromInput("\u001b[6~", {}).includes("pagedown")).toBe(true);
+		expect(keyNamesFromInput("\u001bOH", {}).includes("home")).toBe(true);
+		expect(keyNamesFromInput("\u001b[F", {}).includes("end")).toBe(true);
+	});
 });

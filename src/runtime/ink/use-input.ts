@@ -35,6 +35,15 @@ export type UseKeyInputOptions = {
 	isActive?: boolean;
 };
 
+const UP_ESCAPE_SEQUENCES = new Set(["\u001b[A", "\u001bOA"]);
+const DOWN_ESCAPE_SEQUENCES = new Set(["\u001b[B", "\u001bOB"]);
+const LEFT_ESCAPE_SEQUENCES = new Set(["\u001b[D", "\u001bOD"]);
+const RIGHT_ESCAPE_SEQUENCES = new Set(["\u001b[C", "\u001bOC"]);
+const PAGE_UP_ESCAPE_SEQUENCES = new Set(["\u001b[5~"]);
+const PAGE_DOWN_ESCAPE_SEQUENCES = new Set(["\u001b[6~"]);
+const HOME_ESCAPE_SEQUENCES = new Set(["\u001b[H", "\u001bOH", "\u001b[1~", "\u001b[7~"]);
+const END_ESCAPE_SEQUENCES = new Set(["\u001b[F", "\u001bOF", "\u001b[4~", "\u001b[8~"]);
+
 function controlCharToLetter(input: string): string | null {
 	if (input.length !== 1) {
 		return null;
@@ -123,6 +132,32 @@ export function keyNamesFromInput(input: string, key: InkKeyLike): string[] {
 	}
 	if (key.delete) {
 		names.add("delete");
+	}
+
+	// Some terminals emit raw VT escape sequences instead of setting arrow/page/home/end flags.
+	if (UP_ESCAPE_SEQUENCES.has(input)) {
+		names.add("up");
+	}
+	if (DOWN_ESCAPE_SEQUENCES.has(input)) {
+		names.add("down");
+	}
+	if (LEFT_ESCAPE_SEQUENCES.has(input)) {
+		names.add("left");
+	}
+	if (RIGHT_ESCAPE_SEQUENCES.has(input)) {
+		names.add("right");
+	}
+	if (PAGE_UP_ESCAPE_SEQUENCES.has(input)) {
+		names.add("pageup");
+	}
+	if (PAGE_DOWN_ESCAPE_SEQUENCES.has(input)) {
+		names.add("pagedown");
+	}
+	if (HOME_ESCAPE_SEQUENCES.has(input)) {
+		names.add("home");
+	}
+	if (END_ESCAPE_SEQUENCES.has(input)) {
+		names.add("end");
 	}
 
 	return Array.from(names);
