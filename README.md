@@ -1,5 +1,16 @@
 # @levitate/tui-kit
 
+## DEPRECATED
+
+Deprecated as of 2026-02-24.
+
+Canonical TUI kit development moved to:
+- `git@github.com:LevitateOS/tui-workspace.git`
+- superproject path: `tui/kit/core`
+
+This repository remains available for migration compatibility only.
+New feature work should not be added here.
+
 Reusable React + Ink primitives for LevitateOS terminal applications.
 
 ## API Model

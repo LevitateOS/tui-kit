@@ -32,6 +32,66 @@
 - Prefer composable TSX primitives over imperative controller abstractions.
 - Fail fast with explicit errors; no silent fallback behavior.
 
+## Architecture Contract
+
+### Provider Architecture (`tui-kit`)
+
+`tui-kit` uses a **component-owned render architecture**:
+
+- primitives own their own visual invariants (line width, seams, borders, padding)
+- hooks own lifecycle/input state transitions (scroll, hotkeys, focus, viewport)
+- patterns/surfaces compose primitives; they do not run global post-processing
+- no endpoint/global smart-line processor is allowed
+
+### Provider Abstraction Rules (`tui-kit`)
+
+`tui-kit` abstractions must be:
+
+- prop-driven TSX components and hooks
+- deterministic (same props/state => same terminal output)
+- composable in a tree like React for web
+- domain-agnostic (no docs-content, distro, or product flow coupling)
+
+Priority migrations from `docs/tui` that define this contract:
+
+- `src/presentation/ink/blocks/shared/intent-color.ts`
+- `src/presentation/ink/blocks/shared/syntax-line.tsx`
+- `src/presentation/ink/primitives/command-line-row.tsx`
+- `src/presentation/ink/primitives/command-line-series.tsx`
+- `src/presentation/ink/primitives/admonition-frame.tsx`
+- `src/presentation/ink/primitives/rich-text-runs.ts`
+
+Secondary generic migrations (only after they are domain-free):
+
+- render-plan measurement helpers
+- viewport + scroll-window math
+- section-aware list navigation helpers
+
+### Consumer Integration Rules (apps using `tui-kit`)
+
+Consumers should behave like HTML React apps:
+
+- build UI by composing leaf components
+- style/update one component without touching unrelated endpoints
+- replace components incrementally without rewriting central processors
+- keep business/domain logic outside `tui-kit`
+
+Never move docs schemas, distro scope rules, or product/session orchestration into `tui-kit`.
+
+### Boundary Summary
+
+Provider (`tui-kit`) owns:
+
+- reusable rendering primitives and composition patterns
+- generic input/viewport/scroll/focus hooks
+- deterministic styling/layout contracts
+
+Consumer apps own:
+
+- domain schemas and content contracts
+- product workflows, session state, and business rules
+- app-specific navigation semantics beyond generic hooks
+
 ## Abstraction-Loop Guard (Mandatory)
 
 - Complexity must track bug size. If a fix starts exceeding the defect scope, stop and reclassify before further edits.

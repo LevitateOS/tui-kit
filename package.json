@@ -2,6 +2,7 @@
   "name": "@levitate/tui-kit",
   "version": "0.3.0",
   "private": true,
+  "deprecated": "Deprecated in favor of git@github.com:LevitateOS/tui-workspace.git (use tui/kit/core).",
   "description": "Reusable terminal UI primitives for LevitateOS",
   "license": "(MIT OR Apache-2.0)",
   "type": "module",
